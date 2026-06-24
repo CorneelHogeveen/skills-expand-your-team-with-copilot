@@ -304,6 +304,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return details.schedule;
   }
 
+  function getActivityShareUrl(activityName) {
+    const shareUrl = new URL(window.location.href);
+    shareUrl.searchParams.set("activity", activityName);
+    return shareUrl.toString();
+  }
+
+  function getShareMessage(activityName, details, formattedSchedule) {
+    return `Check out ${activityName} at Mergington High School! ${details.description} Schedule: ${formattedSchedule}`;
+  }
+
   // Function to determine activity type (this would ideally come from backend)
   function getActivityType(activityName, description) {
     const name = activityName.toLowerCase();
@@ -569,6 +579,15 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-actions">
+        <button class="share-button whatsapp-share-button">
+          Share on WhatsApp
+        </button>
+        <button class="share-button facebook-share-button">
+          Share on Facebook
+        </button>
+        <button class="share-button copy-link-share-button">Copy Link</button>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -586,6 +605,42 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    const shareUrl = getActivityShareUrl(name);
+    const shareMessage = getShareMessage(name, details, formattedSchedule);
+
+    const whatsappShareButton = activityCard.querySelector(
+      ".whatsapp-share-button"
+    );
+    whatsappShareButton.addEventListener("click", () => {
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
+        `${shareMessage} ${shareUrl}`
+      )}`;
+      window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    });
+
+    const facebookShareButton = activityCard.querySelector(
+      ".facebook-share-button"
+    );
+    facebookShareButton.addEventListener("click", () => {
+      const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+        shareUrl
+      )}`;
+      window.open(facebookUrl, "_blank", "noopener,noreferrer");
+    });
+
+    const copyLinkShareButton = activityCard.querySelector(
+      ".copy-link-share-button"
+    );
+    copyLinkShareButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        showMessage("Activity link copied. Share it with your friends!", "info");
+      } catch (error) {
+        showMessage("Could not copy the link. Please try again.", "error");
+        console.error("Error copying share link:", error);
+      }
+    });
 
     activitiesList.appendChild(activityCard);
   }
